@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Hello from '@/components/Hello'
+import chat from '@/components/chat'
 import Todo from '@/components/Todo'
 
 Vue.use(Router)
@@ -8,9 +8,9 @@ Vue.use(Router)
 export default new Router({
   routes: [
     {
-      path: '/hello',
-      name: 'Hello',
-      component: Hello
+      path: '/chat',
+      name: 'chat',
+      component: chat
     },
     {
       path: '/',

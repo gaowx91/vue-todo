@@ -1,23 +1,11 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import chat from './modules/chat.js'
 export const STORAGE_KEY = 'todos-vuejs'
 Vue.use(Vuex)
 
 const state = {
 	todoList:JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '[]')
-  // todoList: [{
-  //     text: 'Hello',
-  //     done: false
-  //   },
-  //   {
-  //     text: 'welcome',
-  //     done: false
-  //   },
-  //   {
-  //     text: 'China',
-  //     done: false
-  //   }
-  // ],
 }
 
 const getters = {
@@ -60,6 +48,9 @@ const mutations = {
 
 export default new Vuex.Store({
   state,
+  modules:{
+    chat
+  },
   getters,
   actions,
   mutations
