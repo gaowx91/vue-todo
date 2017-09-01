@@ -18,6 +18,7 @@ const getters = {
 }
 const actions = {}
 
+
 const mutations = {
   addTodo: (state, { text }) => {
     if (text) {

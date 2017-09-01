@@ -1,17 +1,17 @@
 <template>
   <div class="chatapp">
     <div class="thread-section">
-      <div class="thread-count">
-        Unread threads:2
+      <div class="thread-count" v-show="unread">
+        Unread threads:{{unread}}
       </div>
       <ul class="thread-list">
-        <li class="thread-list-item">
+        <li class="thread-list-item" v-for="(thread,index) in threads" :class="{ active: thread.id === currentThreadID }" @click="switchThread(thread.id)">
           <span class="thread-name">
-            Jing and Bill
+            {{thread.name}}
           </span>
-          <div class="thread-time">下午3:08:21</div>
+          <div class="thread-time">{{thread.lastMessage.timestamp | time}}</div>
           <div class="thread-last-message">
-            Sounds good.  Will they be serving dessert?
+           {{thread.lastMessage.text}}
           </div>
         </li>
       </ul>
@@ -19,10 +19,10 @@
     <div class="message-section">
       <h3 class="message-thread-heading">Functional Heads</h3>
       <ul class="message-list">
-        <li class="message-list-item">
-          <span class="message-author-name">Bill</span>
-          <div class="message-time">下午3:08:21</div>
-          <div class="message-text">Hey Brian, are you going to be talking about functional stuff?</div>
+        <li class="message-list-item" v-for="(message,index) in currentMessages" :key="index">
+          <span class="message-author-name">{{message.authorName}}</span>
+          <div class="message-time">{{message.timestamp | time}}</div>
+          <div class="message-text">{{message.text}}</div>
         </li>
       </ul>
       <textarea class="message-composer"></textarea>
@@ -40,10 +40,32 @@ export default {
       msg: 'Welcome to Your Vue.js App'
     }
   },
+  filters:{
+    time:(timestamp) => {
+      return new Date(timestamp).toLocaleTimeString()
+    }
+  },
   computed:{
     ...mapGetters([
+      'threads',
+      'currentThreadID',
       'unread',
+      'currentMessages',
       ]),
+      // unreadCount () {
+      //   //const threads = this.threads
+      //   console.log(88);
+      //   return Object.keys(this.threads).reduce((count, id) => {
+      //     return this.threads[id].lastMessage.isRead
+      //       ? count
+      //       : count + 1
+      //   }, 0)
+      // }
+  },
+  methods:{
+    switchThread(threadID){
+      this.$store.commit('SWITCH_THREAD',{threadID});
+    }
   },
 }
 </script>

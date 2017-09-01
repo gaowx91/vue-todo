@@ -23,3 +23,5 @@ new Vue({
   template: '<App/>',
   components: { App }
 })
+// console.log(this);
+store.dispatch('getAllMessages');

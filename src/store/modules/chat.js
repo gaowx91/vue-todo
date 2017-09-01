@@ -1,4 +1,16 @@
 
+import Vue from 'Vue'
+import * as api from '../../api/index.js'
+
+const types ={
+  SWITCH_THREAD:'SWITCH_THREAD',
+  RECEIVE_ALL:'RECEIVE_ALL',
+  RECEIVE_MESSAGE:'RECEIVE_MESSAGE',
+}
+// const SWITCH_THREAD = 'SWITCH_THREAD'
+// const RECEIVE_ALL = 'RECEIVE_ALL'
+// const RECEIVE_MESSAGE = 'RECEIVE_MESSAGE'
+
 const state = {
   currentThreadID: null,
   threads: {
@@ -15,7 +27,7 @@ const state = {
     /*
     id: {
       id,
-      threadId,
+      threadID,
       threadName,
       authorName,
       text,
@@ -28,8 +40,35 @@ const state = {
 
 // getters
 const getters = {
-  // unread: state => state.unread
-}
+  threads:state => state.threads,
+  currentThreadID:state=>state.currentThreadID,
+  unread: state => {
+    let threads = state.threads;
+    let count= 0;
+    
+    // if(threads){
+    //     console.log(threads);
+    //     threads.forEach((thread)=>{
+    //     if(!thread.lastMessage.isRead){
+    //       count+=1;
+    //     }
+    //   })
+    // }
+     return count;
+    
+    //return state.currentThreadID ? state.threads[state.currentThreadID].lastMessage.isRead: 1;
+    // return Object.keys(threads).reduce((count,id) =>{
+    //   return threads[id].lastMessage.isRead ? count : count+1;
+    // },0);
+  },
+  currentThread: state =>{
+    return state.currentThreadID ? state.threads[state.currentThreadID] : {};
+  },
+  currentMessages:state=>{
+    const thread = getters.currentThread(state)
+    return thread.messages ? thread.messages.map(id=>state.messages[id]) : {};
+  },
+};
 
 // actions
 const actions = {
@@ -41,16 +80,90 @@ const actions = {
       () => commit(types.CHECKOUT_SUCCESS),
       () => commit(types.CHECKOUT_FAILURE, { savedCartItems })
     )
-  }
-}
+  },
+  getAllMessages({ commit }){
+    api.getAllMessages(messages => {
+      commit(types.RECEIVE_ALL, {
+        messages
+      });
+    });
+  },
+  // switchThread({ commit }, payload) {
+  //   commit(types.SWITCH_THREAD, payload)
+  // },
+};
 
 // mutations
 const mutations = {
+  [types.RECEIVE_ALL](state, { messages }){
+    let latestMessage;
+    messages.forEach(message => {
+      if(!state.threads[message.threadID]){
+        createThread(state, message.threadID, message.threadName);
+      }
+      if(!latestMessage || message.timestamp > latestMessage.timestamp){
+        latestMessage = message;
+      }
+      addMessage(state, message);
+    });
+
+    // set initial thread to the one with the latest message
+    setCurrentThread(state, latestMessage.threadID)
+  },
+  [types.SWITCH_THREAD](state,{threadID}){
+    setCurrentThread(state,threadID);
+    console.log(state.threads);
+  }
+    // [types.SWITCH_THREAD] (state, { id }) {
+    // setCurrentThread(state, id)
+  //}
 }
+
+function createThread(state, id, name){
+    Vue.set(state.threads,id,{
+      id,
+      name,
+      messages: [],
+      lastMessage: null
+    });
+}
+function addMessage (state, message) {
+  // add a `isRead` field before adding the message
+  message.isRead = message.threadID === state.currentThreadID
+  // add it to the thread it belongs to
+  const thread = state.threads[message.threadID]
+  if (!thread.messages.some(id => id === message.id)) {
+    thread.messages.push(message.id)
+    thread.lastMessage = message
+  }
+  // add it to the messages map
+  Vue.set(state.messages, message.id, message)
+}
+
+// function addMessage(state, message){
+//     message.isRead = message.threadID === state.currentThreadID;
+//     const thread = state.threads[message.threadID];
+//     if(!thread.messages.some(id => id === message.id)){
+//       console.log(thread.messages);
+//       thread.messages.push(message.id);
+//       console.log(thread.messages);
+//       thread.lastMessage = message;
+//     }
+//     Vue.set(state.messages, message.id, message);
+//   }
+function setCurrentThread(state,id){
+    state.currentThreadID = id
+    if (!state.threads[id]) {
+      debugger
+    }
+    // mark thread as read
+    // state.threads[id].lastMessage.isRead = true
+    Vue.set(state.threads[id].lastMessage,'isRead',true);
+  }
 
 export default {
   state,
   getters,
   actions,
   mutations
-}
+};
