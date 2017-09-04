@@ -42,25 +42,17 @@ const state = {
 const getters = {
   threads:state => state.threads,
   currentThreadID:state=>state.currentThreadID,
-  unread: state => {
-    let threads = state.threads;
-    let count= 0;
-    
-    // if(threads){
-    //     console.log(threads);
-    //     threads.forEach((thread)=>{
-    //     if(!thread.lastMessage.isRead){
-    //       count+=1;
-    //     }
-    //   })
-    // }
-     return count;
-    
-    //return state.currentThreadID ? state.threads[state.currentThreadID].lastMessage.isRead: 1;
-    // return Object.keys(threads).reduce((count,id) =>{
-    //   return threads[id].lastMessage.isRead ? count : count+1;
-    // },0);
-  },
+  // unread: state => {
+  //     const threads = state.threads
+  //     return Object.keys(threads).reduce((count, id) => {
+  //       return threads[id].lastMessage.isRead
+  //         ? count
+  //         : count + 1
+  //     }, 0)
+  // //   return Object.keys(state.threads).reduce((count,id) =>{
+  // //     return state.threads[id].lastMessage.isRead ? count : count+1;
+  // //   },0);
+  // },
   currentThread: state =>{
     return state.currentThreadID ? state.threads[state.currentThreadID] : {};
   },
@@ -68,6 +60,15 @@ const getters = {
     const thread = getters.currentThread(state)
     return thread.messages ? thread.messages.map(id=>state.messages[id]) : {};
   },
+  unreadCount:state=>{
+    const threads = state.threads
+    return Object.keys(threads).reduce((count, id) => {
+      return threads[id].lastMessage.isRead
+        ? count
+        : count + 1
+    }, 0)
+  },
+
 };
 
 // actions
@@ -88,6 +89,14 @@ const actions = {
       });
     });
   },
+  sendMessage({ commit }, payload) {
+    api.createMessage(payload, message => {
+      commit(types.RECEIVE_MESSAGE, {
+        message
+      })
+    })
+  }
+ 
   // switchThread({ commit }, payload) {
   //   commit(types.SWITCH_THREAD, payload)
   // },
@@ -112,11 +121,11 @@ const mutations = {
   },
   [types.SWITCH_THREAD](state,{threadID}){
     setCurrentThread(state,threadID);
-    console.log(state.threads);
-  }
-    // [types.SWITCH_THREAD] (state, { id }) {
-    // setCurrentThread(state, id)
-  //}
+    // console.log(state.threads);
+  },
+    [types.RECEIVE_MESSAGE] (state, { message }) {
+    addMessage(state, message)
+  },
 }
 
 function createThread(state, id, name){
@@ -157,8 +166,8 @@ function setCurrentThread(state,id){
       debugger
     }
     // mark thread as read
-    // state.threads[id].lastMessage.isRead = true
-    Vue.set(state.threads[id].lastMessage,'isRead',true);
+     state.threads[id].lastMessage.isRead = true;
+    //Vue.set(state.threads[id].lastMessage,'isRead',true);
   }
 
 export default {

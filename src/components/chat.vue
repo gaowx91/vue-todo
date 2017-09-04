@@ -1,8 +1,8 @@
 <template>
   <div class="chatapp">
     <div class="thread-section">
-      <div class="thread-count" v-show="unread">
-        Unread threads:{{unread}}
+      <div class="thread-count" v-show="unreadCount">
+        Unread threads:{{unreadCount}}
       </div>
       <ul class="thread-list">
         <li class="thread-list-item" v-for="(thread,index) in threads" :class="{ active: thread.id === currentThreadID }" @click="switchThread(thread.id)">
@@ -17,15 +17,15 @@
       </ul>
     </div>
     <div class="message-section">
-      <h3 class="message-thread-heading">Functional Heads</h3>
-      <ul class="message-list">
+      <h3 class="message-thread-heading">{{currentThread.name}}</h3>
+      <ul class="message-list" ref="list">
         <li class="message-list-item" v-for="(message,index) in currentMessages" :key="index">
           <span class="message-author-name">{{message.authorName}}</span>
           <div class="message-time">{{message.timestamp | time}}</div>
           <div class="message-text">{{message.text}}</div>
         </li>
       </ul>
-      <textarea class="message-composer"></textarea>
+      <textarea class="message-composer" @keyup.enter="sendMessage"></textarea>
     </div>
 
   </div>
@@ -49,7 +49,8 @@ export default {
     ...mapGetters([
       'threads',
       'currentThreadID',
-      'unread',
+      'currentThread',
+      'unreadCount',
       'currentMessages',
       ]),
       // unreadCount () {
@@ -65,6 +66,24 @@ export default {
   methods:{
     switchThread(threadID){
       this.$store.commit('SWITCH_THREAD',{threadID});
+    },
+    sendMessage (e) {
+      const text = e.target.value
+      if (text.trim()) {
+        this.$store.dispatch('sendMessage', {
+          text,
+          thread: this.currentThread
+        })
+        e.target.value = ''
+      }
+    }
+  },
+  watch: {
+    'currentThread.lastMessage': function () {
+      this.$nextTick(() => {
+        const ul = this.$refs.list
+        ul.scrollTop = ul.scrollHeight
+      }) 
     }
   },
 }
